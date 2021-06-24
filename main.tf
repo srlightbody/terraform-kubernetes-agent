@@ -67,6 +67,56 @@ resource "kubernetes_daemonset" "lacework_datacollector" {
           }
         }
 
+        dynamic "affinity" {
+          for_each = var.affinities
+          content {
+            dynamic "node_affinity" {
+              for_each = affinity.value == "node_affinity" ? [1] : []
+              content {
+
+                dynamic "required_during_scheduling_ignored_during_execution" {
+                  for_each = var.required_node_selector_match_expressions != null ? [1] : []
+                  content {
+                    dynamic "node_selector_term" {
+                      for_each = var.required_node_selector_match_expressions != null ? [1] : []
+                      content {
+                        dynamic "match_expressions" {
+                          for_each = var.required_node_selector_match_expressions
+                          content {
+                            key      = match_expressions.value.key
+                            operator = match_expressions.value.operator
+                            values   = match_expressions.value.values
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+
+                dynamic "preferred_during_scheduling_ignored_during_execution" {
+                  for_each = var.preferred_weight_and_match_expressions != null ? [1] : []
+                  content {
+                    weight = var.preferred_weight_and_match_expressions.weight
+                    preference {
+                      dynamic "match_expressions" {
+                        for_each = var.preferred_weight_and_match_expressions.match_expressions
+                        content {
+                          key      = match_expressions.value.key
+                          operator = match_expressions.value.operator
+                          values   = match_expressions.value.values
+                        }
+                      }
+                    }
+
+                  }
+                }
+
+              }
+            }
+
+          }
+        }
+
         service_account_name = var.pod_service_account
 
         container {

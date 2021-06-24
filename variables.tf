@@ -86,3 +86,33 @@ variable "tolerations" {
   default     = [{ key = "node-role.kubernetes.io/master", effect = "NoSchedule" }]
   description = "A list of Kubernetes Tolerations to apply to the DaemonSet definition"
 }
+
+variable "affinities" {
+  type        = list(string)
+  description = "List of affinity types to set for the deployment. Only supports node affinity for now, but can be extended later if needed"
+  default     = []
+}
+
+variable "required_node_selector_match_expressions" {
+  type = list(object({
+    key      = string
+    operator = string
+    values   = list(string)
+  }))
+  description = "List of match expressions for required node selectors when using node affinities"
+  default     = null
+}
+
+variable "preferred_weight_and_match_expressions" {
+  type = object({
+    weight = number
+    match_expressions = list(object({
+      key      = string
+      operator = string
+      values   = list(string)
+    }))
+    }
+  )
+  description = "List of match expressions and weights for preferred node selectors when using node affinities"
+  default     = null
+}
